@@ -3,6 +3,7 @@ Rails.application.routes.draw do
   resources :replies
   resources :comments
   resources :tags
+  resources :likes
 
   get '/users', to: 'users#index'
   get '/users/:id', to: 'users#show'
@@ -40,6 +41,12 @@ Rails.application.routes.draw do
   post '/reports', to: 'reports#create'
   delete '/reports/:id', to: 'reports#destroy'
   put '/reports/:id', to: 'reports#update'
+
+  get '/likes', to: 'likes#index'
+  get '/likes/:id', to: 'likes#show'
+  post '/likes', to: 'likes#create'
+  delete '/likes/:id', to: 'likes#destroy'
+  put '/likes/:id', to: 'likes#update'
 
   resources :users, params: :name
   post '/login', to: 'authentication#login'

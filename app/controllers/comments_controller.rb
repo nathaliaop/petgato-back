@@ -7,37 +7,60 @@ class CommentsController < ApplicationController
   # GET /comments
   def index
     @comments = Comment.page(current_page).per(per_page).map do | comment |
-      user = User.find_by(id: comment.user_id)
+      user_comment = User.find_by(id: comment.user_id)
       url = nil
 
       # verifica se existe imagem
-      if user.photo.attached?
+      if user_comment.photo.attached?
         url = url_for(user.photo)
       end
-      user = user.attributes.merge(photo: url)
+      user_comment = user_comment.attributes.merge(photo: url)
 
-      comment.attributes.merge(user: user)
+      replies = Reply.where(comment_id: comment.id) do | reply |
+        user_reply = User.find_by(id: reply.user_id)
+        url_user_reply = nil
+
+        # verifica se existe imagem
+        if user_reply.photo.attached?
+          url_user_reply = url_for(user_reply.photo)
+        end
+        user_reply = user_reply.attributes.merge(photo: url_user_reply)
+
+        reply.attributes.merge(user_reply: user_reply)
+      end
+        
+
+      comment.attributes.merge(user_comment: user_comment, replies: replies)
     end
     
     render json: @comments
   end
 
-  # GET /comments/1
-  def show
-    user = User.find_by(id: @comment.user_id)
+    # GET /comments
+    def show
+      user_comment = User.find_by(id: @comment.user_id)
+      url = nil
 
-    render json: @comment
-  end
+      # verifica se existe imagem
+      if user_comment.photo.attached?
+        url = url_for(user.photo)
+      end
+      user_comment = user_comment.attributes.merge(photo: url)
 
-  # POST /comments
-  def create
-    @comment = Comment.new(comment_params)
+      replies = Reply.where(comment_id: @comment.id) do | reply |
+        user_reply = User.find_by(id: reply.user_id)
+        url_user_reply = nil
 
-    if @comment.save
-      render json: @comment, status: :created, location: @comment
-    else
-      render json: @comment.errors, status: :unprocessable_entity
-    end
+        # verifica se existe imagem
+        if user_reply.photo.attached?
+          url_user_reply = url_for(user_reply.photo)
+        end
+        user_reply = user_reply.attributes.merge(photo: url_user_reply)
+
+        reply.attributes.merge(user_reply: user_reply)
+      end
+  
+    render json: @comment.attributes.merge(user_comment: user_comment, replies: replies), status: :ok
   end
 
   # PATCH/PUT /comments/1
