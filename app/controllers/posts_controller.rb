@@ -81,6 +81,33 @@ class PostsController < ApplicationController
 
   def destroy
     post = Post.find(params[:id])
+    content = post.content
+    url = url_for(post.banner_image)
+    comments = Comment.where(post_id: post.id).map do | comment |
+      user = User.find_by(id: comment.user_id)
+      url_user = nil
+
+      # verifica se existe imagem
+      if user.photo.attached?
+        url_user = url_for(user.photo)
+      end
+      user = user.attributes.merge(photo: url_user)
+
+      replies = Reply.where(comment_id: comment.id).map do | reply |
+        user_reply = User.find_by(id: reply.user_id)
+        url_user_reply = nil
+        # verifica se existe imagem
+        if user_reply.photo.attached?
+          url_user_reply = url_for(user_reply.photo)
+        end
+        user_reply = user_reply.attributes.merge(photo: url_user_reply)
+        
+        reply.attributes.merge(user_reply: user_reply)
+      end
+
+      comment.attributes.merge(user: user, replies: replies)
+    end
+    post.attributes.merge(content: content, banner_image: url, comments: comments)
     post.destroy
     render status: :ok
   end
