@@ -32,7 +32,9 @@ class PostsController < ApplicationController
         comment.attributes.merge(user: user, replies: replies)
       end
 
-      post.attributes.merge(content: content, banner_image: url, comments: comments)
+      likes = Like.where(post_id: post.id)
+
+      post.attributes.merge(content: content, banner_image: url, comments: comments, likes: likes)
     end
     render json: posts, status: :ok
   end
@@ -67,7 +69,9 @@ class PostsController < ApplicationController
       comment.attributes.merge(user: user, replies: replies)
     end
 
-    render json: post.attributes.merge(content: content, banner_image: url, comments: comments), status: :ok
+    likes = Like.where(post_id: post.id)
+
+    render json: post.attributes.merge(content: content, banner_image: url, comments: comments, likes: likes), status: :ok
   end
 
   def create
